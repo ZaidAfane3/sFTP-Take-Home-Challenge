@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RealBlocks SFTP Server
+Parameters:
+  Username:
+    Type: String 
+    Description: Enter the username to access the server.
+  SSHPublicKey:
+    Type: String
+    Description: Insert Public Key to access the server. 
+Resources:
+    SftpServer:
+      Type : AWS::Transfer::Server
+      Properties :
+        LoggingRole: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSTransferLoggingAccess"
+        Domain: S3
+        Protocols: 
+            - SFTP
+        SecurityPolicyName: TransferSecurityPolicy-FIPS-2020-06
+        IdentityProviderType: SERVICE_MANAGED
+    MainUser:
+        Type: AWS::Transfer::User
+        Properties:
+          HomeDirectory: /sftp-realblocks
+          Role: !Sub "arn:aws:iam::${AWS::AccountId}:role/Transfer-S3"
+          ServerId: !GetAtt SftpServer.ServerId
+          SshPublicKeys: 
+            - Ref: SSHPublicKey
+          UserName: !Ref Username
